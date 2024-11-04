@@ -1,0 +1,38 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.cluster import AgglomerativeClustering
+from sklearn.metrics import mean_squared_error
+from scipy.cluster.hierarchy import dendrogram, linkage
+
+url = 'https://raw.githubusercontent.com/subhadeep-123/KMeans-and-Agglomerative-Clustering-on-Mall-Customers-dataset/master/Mall_Customers.csv'
+data = pd.read_csv(url)
+
+print(data.head())
+X = data[['Annual Income (k$)', 'Spending Score (1-100)']]
+
+plt.figure(figsize=(10, 7))
+Z = linkage(X, method='ward')
+dendrogram(Z)
+plt.title("Dendrogram for Agglomerative Clustering")
+plt.xlabel("Data Points")
+plt.ylabel("Euclidean Distance")
+plt.show()
+
+n_clusters = 4
+agg_clustering = AgglomerativeClustering(n_clusters=n_clusters, linkage='ward')
+cluster_labels = agg_clustering.fit_predict(X)
+
+data['Cluster'] = cluster_labels
+
+plt.figure(figsize=(10, 7))
+sns.scatterplot(x='Annual Income (k$)', y='Spending Score (1-100)', hue='Cluster', data=data, palette='viridis', s=100)
+plt.title("Final Clusters (Agglomerative Clustering)")
+plt.xlabel("Annual Income (k$)")
+plt.ylabel("Spending Score (1-100)")
+plt.legend()
+plt.show()
+
+error_rate = mean_squared_error(X, np.array([X[cluster_labels == i].mean() for i in range(n_clusters)])[cluster_labels])
+print(f"Error Rate (Mean Squared Error): {error_rate}")
