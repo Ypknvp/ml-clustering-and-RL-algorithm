@@ -1,0 +1,64 @@
+import numpy as np
+import random
+
+
+grid_size = 5
+goal_state = (4, 4) 
+obstacles = [(1, 1), (2, 2), (3, 1), (2, 3)]  
+
+
+alpha = 0.1 
+gamma = 0.9  
+epsilon = 0.2  
+num_episodes = 1000  
+
+# Initialize Q-table
+q_table = np.zeros((grid_size, grid_size, 4))  # 4 actions (up, down, left, right)
+
+
+actions = {
+    0: (-1, 0),  # Up
+    1: (1, 0),   # Down
+    2: (0, -1),  # Left
+    3: (0, 1)    # Right
+}
+
+def is_valid_state(state):
+    return 0 <= state[0] < grid_size and 0 <= state[1] < grid_size and state not in obstacles
+
+def get_reward(state):
+    if state == goal_state:
+        return 10  # Goal reward
+    return -1  # Step penalty
+
+
+for episode in range(num_episodes):
+    state = (0, 0)  # Start position
+    while state != goal_state:
+        if random.uniform(0, 1) < epsilon:
+            action = random.randint(0, 3)  # Explore
+        else:
+            action = np.argmax(q_table[state[0], state[1]])  # Exploit
+
+       
+        new_state = (state[0] + actions[action][0], state[1] + actions[action][1])
+
+        if not is_valid_state(new_state):
+            new_state = state  # Stay in the same state if invalid
+
+        reward = get_reward(new_state)
+       
+        q_table[state[0], state[1], action] += alpha * (reward + gamma * np.max(q_table[new_state[0], new_state[1]]) - q_table[state[0], state[1], action])
+        
+        state = new_state
+
+
+print("Q-Table:")
+print(q_table)
+
+
+best_state = (0, 0)  # Starting position
+while best_state != goal_state:
+    best_action = np.argmax(q_table[best_state[0], best_state[1]])
+    print(f"Current State: {best_state}, Best Action: {best_action}")
+    best_state = (best_state[0] + actions[best_action][0], best_state[1] + actions[best_action][1])
